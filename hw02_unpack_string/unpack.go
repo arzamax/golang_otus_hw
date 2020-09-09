@@ -32,6 +32,7 @@ func Unpack(s string) (string, error) {
 			if temp != rune(0) {
 				builder.WriteRune(temp)
 			}
+
 			temp = r
 		}
 	}
