@@ -14,9 +14,8 @@ func Unpack(s string) (string, error) {
 		temp    rune
 		builder strings.Builder
 	)
-	runes := []rune(s)
 
-	for _, r := range runes {
+	for _, r := range s {
 		if unicode.IsDigit(r) {
 			if temp == rune(0) {
 				return "", ErrInvalidString
