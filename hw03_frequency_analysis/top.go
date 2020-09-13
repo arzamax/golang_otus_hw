@@ -38,7 +38,15 @@ func Top10(str string) []string {
 	arr := strings.Fields(str)
 	dict := getWordCountersDict(arr)
 	counters := getSortedWordCounters(dict)
-	res := make([]string, 0, len(counters))
+	var limit int
+
+	if len(counters) > 10 {
+		limit = 10
+	} else {
+		limit = len(counters)
+	}
+
+	res := make([]string, 0, limit)
 
 	for _, v := range counters {
 		res = append(res, v.name)
