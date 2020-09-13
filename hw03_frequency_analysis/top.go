@@ -14,13 +14,7 @@ func getWordCountersDict(arr []string) map[string]int {
 	dict := map[string]int{}
 
 	for _, v := range arr {
-		_, ok := dict[v]
-
-		if ok {
-			dict[v]++
-		} else {
-			dict[v] = 1
-		}
+		dict[v]++
 	}
 
 	return dict
@@ -30,8 +24,7 @@ func getSortedWordCounters(dict map[string]int) []wordCounter {
 	counters := make([]wordCounter, 0, len(dict))
 
 	for k, v := range dict {
-		counter := wordCounter{name: k, value: v}
-		counters = append(counters, counter)
+		counters = append(counters, wordCounter{name: k, value: v})
 	}
 
 	sort.Slice(counters, func(i, j int) bool {
