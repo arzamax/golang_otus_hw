@@ -48,4 +48,38 @@ func TestList(t *testing.T) {
 		}
 		require.Equal(t, []int{70, 80, 60, 40, 10, 30, 50}, elems)
 	})
+
+	t.Run("single PushBack call should fill list", func(t *testing.T) {
+		l := NewList()
+
+		item := l.PushBack(1)
+
+		require.Equal(t, l.Front(), item)
+		require.Equal(t, l.Back(), item)
+	})
+
+	t.Run("should be empty list after removing last item", func(t *testing.T) {
+		l := NewList()
+
+		l.PushFront(1)
+
+		require.Equal(t, 1, l.Len())
+
+		item := l.Front()
+		l.Remove(item)
+
+		require.Nil(t, l.Front())
+		require.Nil(t, l.Back())
+	})
+
+	t.Run("head should be equal to the item after MoveToFront call", func(t *testing.T) {
+		l := NewList()
+
+		l.PushFront(1)
+		l.PushBack(2)
+	    last := l.PushBack(3)
+		l.MoveToFront(last)
+
+		require.Equal(t, l.Front(), last)
+	})
 }
