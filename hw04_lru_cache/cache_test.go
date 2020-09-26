@@ -50,7 +50,25 @@ func TestCache(t *testing.T) {
 	})
 
 	t.Run("purge logic", func(t *testing.T) {
-		// Write me
+		c := NewCache(1)
+		c.Set("a", 1)
+		c.Clear()
+		val, ok := c.Get("a")
+
+		require.False(t, ok)
+		require.Nil(t, val)
+	})
+
+	t.Run("should remove less frequently used item", func(t *testing.T) {
+		c := NewCache(2)
+		c.Set("a", 1)
+		c.Set("b", 2)
+		c.Set("c", 3)
+
+		val, ok := c.Get("a")
+
+		require.False(t, ok)
+		require.Nil(t, val)
 	})
 }
 

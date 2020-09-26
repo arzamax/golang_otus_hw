@@ -77,7 +77,7 @@ func TestList(t *testing.T) {
 
 		l.PushFront(1)
 		l.PushBack(2)
-	    last := l.PushBack(3)
+		last := l.PushBack(3)
 		l.MoveToFront(last)
 
 		require.Equal(t, l.Front(), last)
