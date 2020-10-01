@@ -1,4 +1,5 @@
 package hw04_lru_cache //nolint:golint,stylecheck
+import "sync"
 
 type Key string
 
@@ -13,55 +14,43 @@ type cacheItem struct {
 	key   *LinkedListItem
 }
 
-type dict struct {
-	data map[Key]*cacheItem
+type lruCache struct {
+	sync.Mutex
+	capacity int
+	queue    *LinkedList
+	dict     map[Key]*cacheItem
 }
 
-func (d *dict) read(key Key) (*cacheItem, bool) {
-	res, ok := d.data[key]
-	return res, ok
-}
+func (cache *lruCache) Set(key Key, value interface{}) bool {
+	cache.Lock()
+	defer cache.Unlock()
 
-func (d *dict) write(key Key, value interface{}, queue *LinkedList, capacity int) (*cacheItem, bool) {
-	var (
-		res *cacheItem
-		ok  bool
-	)
-	res, ok = d.read(key)
+	res, ok := cache.dict[key]
 
 	if ok {
 		i := res
 		i.value = value
-		queue.MoveToFront(i.key)
+		cache.queue.MoveToFront(i.key)
 	} else {
-		if capacity == queue.Length {
-			delete(d.data, queue.Tail.Value.(Key))
-			queue.Remove(queue.Tail)
+		if cache.capacity == cache.queue.Length {
+			delete(cache.dict, cache.queue.Tail.Value.(Key))
+			cache.queue.Remove(cache.queue.Tail)
 		}
 
-		d.data[key] = &cacheItem{
+		cache.dict[key] = &cacheItem{
 			value: value,
-			key:   queue.PushFront(key),
+			key:   cache.queue.PushFront(key),
 		}
-		res = d.data[key]
 	}
 
-	return res, ok
-}
-
-type lruCache struct {
-	capacity int
-	queue    *LinkedList
-	dict     dict
-}
-
-func (cache *lruCache) Set(key Key, value interface{}) bool {
-	_, ok := cache.dict.write(key, value, cache.queue, cache.capacity)
 	return ok
 }
 
 func (cache *lruCache) Get(key Key) (interface{}, bool) {
-	if i, ok := cache.dict.read(key); ok {
+	cache.Lock()
+	defer cache.Unlock()
+
+	if i, ok := cache.dict[key]; ok {
 		cache.queue.MoveToFront(i.key)
 		return i.value, true
 	}
@@ -71,13 +60,13 @@ func (cache *lruCache) Get(key Key) (interface{}, bool) {
 
 func (cache *lruCache) Clear() {
 	cache.queue = NewList()
-	cache.dict = dict{data: make(map[Key]*cacheItem)}
+	cache.dict = make(map[Key]*cacheItem)
 }
 
 func NewCache(capacity int) Cache {
 	return &lruCache{
 		capacity: capacity,
 		queue:    NewList(),
-		dict:     dict{data: make(map[Key]*cacheItem)},
+		dict:     make(map[Key]*cacheItem),
 	}
 }

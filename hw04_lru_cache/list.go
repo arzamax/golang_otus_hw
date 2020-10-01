@@ -37,8 +37,6 @@ func (l *LinkedList) Back() *LinkedListItem {
 func (l *LinkedList) PushFront(v interface{}) *LinkedListItem {
 	item := LinkedListItem{
 		Value: v,
-		Prev:  nil,
-		Next:  nil,
 	}
 
 	l.Length++
@@ -58,8 +56,6 @@ func (l *LinkedList) PushFront(v interface{}) *LinkedListItem {
 func (l *LinkedList) PushBack(v interface{}) *LinkedListItem {
 	item := LinkedListItem{
 		Value: v,
-		Prev:  nil,
-		Next:  nil,
 	}
 
 	l.Length++
