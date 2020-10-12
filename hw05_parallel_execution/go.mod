@@ -1,4 +1,4 @@
-module github.com/arzamax/hw05_parallel_execution
+module github.com/arzamax/golang_otus_hw/hw05_parallel_execution
 
 go 1.14
 
