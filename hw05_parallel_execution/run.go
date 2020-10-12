@@ -55,7 +55,6 @@ func Run(tasks []Task, n int, m int) error {
 	signal := make(chan interface{})
 
 	wg.Add(n)
-
 	defer wg.Wait()
 	defer close(signal)
 
