@@ -26,20 +26,6 @@ func (e *errorsCount) get() int {
 	return e.value
 }
 
-func taskWorker(nextTask chan Task, signal chan interface{}, errCount *errorsCount, wg *sync.WaitGroup) {
-	defer wg.Done()
-	for {
-		select {
-		case task := <-nextTask:
-			if err := task(); err != nil {
-				errCount.increment()
-			}
-		case <-signal:
-			return
-		}
-	}
-}
-
 func Run(tasks []Task, n int, m int) error {
 	if n <= 0 {
 		n = len(tasks)
@@ -71,4 +57,18 @@ func Run(tasks []Task, n int, m int) error {
 	}
 
 	return nil
+}
+
+func taskWorker(nextTask chan Task, signal chan interface{}, errCount *errorsCount, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for {
+		select {
+		case task := <-nextTask:
+			if err := task(); err != nil {
+				errCount.increment()
+			}
+		case <-signal:
+			return
+		}
+	}
 }
