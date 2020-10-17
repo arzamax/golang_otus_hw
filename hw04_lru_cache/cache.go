@@ -59,6 +59,9 @@ func (cache *lruCache) Get(key Key) (interface{}, bool) {
 }
 
 func (cache *lruCache) Clear() {
+	cache.Lock()
+	defer cache.Unlock()
+
 	cache.queue = NewList()
 	cache.dict = make(map[Key]*cacheItem)
 }
