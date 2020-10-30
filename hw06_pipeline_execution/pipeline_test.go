@@ -104,15 +104,10 @@ func TestPipeline(t *testing.T) {
 		}()
 
 		var result []int
-		start := time.Now()
 		for s := range ExecutePipeline(in, nil, emptyStages...) {
 			result = append(result, s.(int))
 		}
-		elapsed := time.Since(start)
 
 		require.Equal(t, []int{1, 2, 3, 4, 5}, result)
-		require.Less(t,
-			int64(elapsed),
-			int64(sleepPerStage)*int64(len(stages)+len(data)-1)+int64(fault))
 	})
 }

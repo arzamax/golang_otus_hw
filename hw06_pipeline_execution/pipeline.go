@@ -12,29 +12,31 @@ func ExecutePipeline(in In, done In, stages ...Stage) Out {
 	next := in
 
 	for _, stage := range stages {
-		next = func(ch In) Out {
-			stageCh := make(Bi)
-
-			go func() {
-				defer close(stageCh)
-
-				for {
-					select {
-					case <-done:
-						return
-					case v, ok := <-ch:
-						if !ok {
-							return
-						}
-
-						stageCh <- v
-					}
-				}
-			}()
-
-			return stage(stageCh)
-		}(next)
+		next = stageWorker(stage, next, done)
 	}
 
 	return next
+}
+
+func stageWorker(stage Stage, ch In, done In) Out {
+	stageCh := make(Bi)
+
+	go func() {
+		defer close(stageCh)
+
+		for {
+			select {
+			case <-done:
+				return
+			case v, ok := <-ch:
+				if !ok {
+					return
+				}
+
+				stageCh <- v
+			}
+		}
+	}()
+
+	return stage(stageCh)
 }
