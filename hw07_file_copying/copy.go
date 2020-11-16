@@ -13,6 +13,9 @@ import (
 var (
 	ErrUnsupportedFile       = errors.New("unsupported file")
 	ErrOffsetExceedsFileSize = errors.New("offset exceeds file size")
+	ErrCreateFile            = errors.New("failed to create output file")
+	ErrWriteFile             = errors.New("failed to write file")
+	ErrSeekFile              = errors.New("failed to seek file")
 	buffer                   = 1024
 )
 
@@ -31,7 +34,7 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 
 	dest, err := os.Create(toPath)
 	if err != nil {
-		return err
+		return ErrCreateFile
 	}
 
 	defer func() {
@@ -47,7 +50,7 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 
 	for i := offset; i < offset+src.limit; i += bufferSize {
 		n, err := src.file.Read(buf)
-		if err != nil && err != io.EOF {
+		if err != nil && !errors.Is(err, io.EOF) {
 			return err
 		}
 		if n == 0 {
@@ -57,7 +60,7 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 		bytes, err := dest.Write(buf[:n])
 
 		if err != nil {
-			return err
+			return ErrWriteFile
 		}
 
 		bar.Add(bytes)
@@ -93,7 +96,7 @@ func getSource(path string, offset, limit int64) (*source, error) {
 
 	_, err = src.Seek(offset, 0)
 	if err != nil {
-		return nil, err
+		return nil, ErrSeekFile
 	}
 
 	return &source{file: src, limit: limit}, nil
