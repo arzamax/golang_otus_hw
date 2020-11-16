@@ -17,35 +17,17 @@ var (
 )
 
 func Copy(fromPath string, toPath string, offset, limit int64) error {
-	sourceStat, err := os.Stat(fromPath)
-	if err != nil || !sourceStat.Mode().IsRegular() {
-		return ErrUnsupportedFile
-	}
-
-	sourceSize := sourceStat.Size()
-	if sourceSize < offset {
-		return ErrOffsetExceedsFileSize
-	}
-	if limit == 0 || limit+offset > sourceSize {
-		limit = sourceSize - offset
-	}
-
-	source, err := os.Open(fromPath)
+	src, err := getSource(fromPath, offset, limit)
 	if err != nil {
-		return ErrUnsupportedFile
+		return err
 	}
 
 	defer func() {
-		err := source.Close()
+		err := src.file.Close()
 		if err != nil {
 			return
 		}
 	}()
-
-	_, err = source.Seek(offset, 0)
-	if err != nil {
-		return err
-	}
 
 	dest, err := os.Create(toPath)
 	if err != nil {
@@ -59,13 +41,12 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 		}
 	}()
 
-	bar := pb.Start64(limit)
-
-	bufferSize := int64(math.Min(float64(buffer), float64(limit)))
+	bar := pb.Start64(src.limit)
+	bufferSize := int64(math.Min(float64(buffer), float64(src.limit)))
 	buf := make([]byte, bufferSize)
 
-	for i := offset; i < offset+limit; i += bufferSize {
-		n, err := source.Read(buf)
+	for i := offset; i < offset+src.limit; i += bufferSize {
+		n, err := src.file.Read(buf)
 		if err != nil && err != io.EOF {
 			return err
 		}
@@ -84,4 +65,36 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 	}
 
 	return nil
+}
+
+type source struct {
+	file  *os.File
+	limit int64
+}
+
+func getSource(path string, offset, limit int64) (*source, error) {
+	srcStat, err := os.Stat(path)
+	if err != nil || !srcStat.Mode().IsRegular() {
+		return nil, ErrUnsupportedFile
+	}
+
+	srcSize := srcStat.Size()
+	if srcSize < offset {
+		return nil, ErrOffsetExceedsFileSize
+	}
+	if limit == 0 || limit+offset > srcSize {
+		limit = srcSize - offset
+	}
+
+	src, err := os.Open(path)
+	if err != nil {
+		return nil, ErrUnsupportedFile
+	}
+
+	_, err = src.Seek(offset, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	return &source{file: src, limit: limit}, nil
 }
