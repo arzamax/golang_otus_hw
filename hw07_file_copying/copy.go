@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"math"
 	"os"
@@ -21,8 +22,9 @@ var (
 
 func Copy(fromPath string, toPath string, offset, limit int64) error {
 	src, err := getSource(fromPath, offset, limit)
+
 	if err != nil {
-		return err
+		return fmt.Errorf("%v", err)
 	}
 
 	defer func() {
@@ -33,6 +35,7 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 	}()
 
 	dest, err := os.Create(toPath)
+
 	if err != nil {
 		return ErrCreateFile
 	}
@@ -50,9 +53,11 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 
 	for i := offset; i < offset+src.limit; i += bufferSize {
 		n, err := src.file.Read(buf)
+
 		if err != nil && !errors.Is(err, io.EOF) {
 			return err
 		}
+
 		if n == 0 {
 			break
 		}
@@ -82,19 +87,23 @@ func getSource(path string, offset, limit int64) (*source, error) {
 	}
 
 	srcSize := srcStat.Size()
+
 	if srcSize < offset {
 		return nil, ErrOffsetExceedsFileSize
 	}
+
 	if limit == 0 || limit+offset > srcSize {
 		limit = srcSize - offset
 	}
 
 	src, err := os.Open(path)
+
 	if err != nil {
 		return nil, ErrUnsupportedFile
 	}
 
 	_, err = src.Seek(offset, 0)
+
 	if err != nil {
 		return nil, ErrSeekFile
 	}
