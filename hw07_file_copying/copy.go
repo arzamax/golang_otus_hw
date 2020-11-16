@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"math"
 	"os"
@@ -14,9 +13,10 @@ import (
 var (
 	ErrUnsupportedFile       = errors.New("unsupported file")
 	ErrOffsetExceedsFileSize = errors.New("offset exceeds file size")
+	ErrReadFile              = errors.New("failed to read input file")
+	ErrSeekFile              = errors.New("failed to seek input file")
 	ErrCreateFile            = errors.New("failed to create output file")
 	ErrWriteFile             = errors.New("failed to write file")
-	ErrSeekFile              = errors.New("failed to seek file")
 	buffer                   = 1024
 )
 
@@ -24,7 +24,7 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 	src, err := getSource(fromPath, offset, limit)
 
 	if err != nil {
-		return fmt.Errorf("%v", err)
+		return errors.New(err.Error())
 	}
 
 	defer func() {
@@ -55,7 +55,7 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 		n, err := src.file.Read(buf)
 
 		if err != nil && !errors.Is(err, io.EOF) {
-			return err
+			return ErrReadFile
 		}
 
 		if n == 0 {
